@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeVerifyAI - News Verification System</title>
+    <style>
+        /* Basic styling for clean academic look */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-type-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .type-btn {
+            padding: 12px 25px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .type-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .type-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-container {
+            display: none;
+        }
+
+        .input-container.active {
+            display: block;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+
+        .file-upload-area:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .file-upload-area.drag-over {
+            border-color: #667eea;
+            background: #e6e6ff;
+        }
+
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+
+        .file-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 5px;
+            color: #333;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .preview-container audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        button.verify-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        button.verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button.verify-btn:active {
+            transform: translateY(0);
+        }
+
+        button.verify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            display: none;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 5px solid;
+        }
+
+        .result-section.genuine {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .result-section.fake {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .result-section.uncertain {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .result-section.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .classification {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .classification.genuine {
+            color: #28a745;
+        }
+
+        .classification.fake {
+            color: #dc3545;
+        }
+
+        .classification.uncertain {
+            color: #ffc107;
+        }
+
+        .explanation {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.2em;
+            display: none;
+            margin-top: 20px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .supported-formats {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 SafeVerifyAI</h1>
+        <p class="subtitle">AI-Powered News Verification System</p>
+
+        <!-- Input Type Selector -->
+        <div class="input-type-selector">
+            <button class="type-btn active" data-type="text" onclick="switchInputType('text')">
+                📝 Text
+            </button>
+            <button class="type-btn" data-type="image" onclick="switchInputType('image')">
+                🖼️ Image
+            </button>
+            <button class="type-btn" data-type="audio" onclick="switchInputType('audio')">
+                🎵 Audio
+            </button>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <!-- Text Input -->
+            <div class="input-container active" id="text-input">
+                <label for="newsInput">Enter News Content to Verify:</label>
+                <textarea 
+                    id="newsInput" 
+                    placeholder="Paste the news article or claim you want to verify here..."
+                ></textarea>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="input-container" id="image-input">
+                <label>Upload News Image/Screenshot:</label>
+                <div class="file-upload-area" id="imageUploadArea" onclick="document.getElementById('imageFile').click()">
+                    <div class="file-icon">🖼️</div>
+                    <p><strong>Click to upload</strong> or drag and drop</p>
+                    <p class="supported-formats">Supported: JPG, PNG, GIF, WebP (Max 16MB)</p>
+                    <input type="file" id="imageFile" accept="image/*" onchange="handleFileSelect(event, 'image')">
+                </div>
+                <div class="file-info" id="imageFileInfo"></div>
+                <div class="preview-container" id="imagePreview"></div>
+                <textarea 
+                    id="imageContext" 
+                    placeholder="Optional: Add additional context or questions about the image..."
+                    style="margin-top: 15px; min-height: 80px;"
+                ></textarea>
+            </div>
+
+            <!-- Audio Upload -->
+            <div class="input-container" id="audio-input">
+                <label>Upload News Audio/Voice Recording:</label>
+                <div class="file-upload-area" id="audioUploadArea" onclick="document.getElementById('audioFile').click()">
+                    <div class="file-icon">🎵</div>
+                    <p><strong>Click to upload</strong> or drag and drop</p>
+                    <p class="supported-formats">Supported: MP3, WAV, M4A, OGG (Max 16MB)</p>
+                    <input type="file" id="audioFile" accept="audio/*" onchange="handleFileSelect(event, 'audio')">
+                </div>
+                <div class="file-info" id="audioFileInfo"></div>
+                <div class="preview-container" id="audioPreview"></div>
+                <textarea 
+                    id="audioContext" 
+                    placeholder="Optional: Add additional context or questions about the audio..."
+                    style="margin-top: 15px; min-height: 80px;"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Verify Button -->
+        <div class="button-container">
+            <button class="verify-btn" id="verifyBtn" onclick="verifyNews()">🔍 Verify News</button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading" id="loading">Analyzing with AI</div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="resultSection">
+            <div class="classification" id="classification"></div>
+            <div class="explanation" id="explanation"></div>
+        </div>
+
+        <div class="footer">
+            Academic Project • Powered by Google Gemini AI • Supports Text, Image & Audio
+        </div>
+    </div>
+
+    <script>
+        let currentInputType = 'text';
+        let selectedFile = null;
+
+        /**
+         * Switch between different input types
+         */
+        function switchInputType(type) {
+            currentInputType = type;
+            
+            // Update button styles
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // Show corresponding input container
+            document.querySelectorAll('.input-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(`${type}-input`).classList.add('active');
+            
+            // Reset selected file
+            selectedFile = null;
+            
+            // Clear previous results
+            document.getElementById('resultSection').style.display = 'none';
+        }
+
+        /**
+         * Handle file selection
+         */
+        function handleFileSelect(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            selectedFile = file;
+            
+            // Show file info
+            const fileInfo = document.getElementById(`${type}FileInfo`);
+            fileInfo.innerHTML = `
+                <strong>Selected:</strong> ${file.name} 
+                <span style="color: #666;">(${formatFileSize(file.size)})</span>
+            `;
+            fileInfo.classList.add('show');
+            
+            // Show preview
+            const preview = document.getElementById(`${type}Preview`);
+            preview.innerHTML = '';
+            
+            if (type === 'image') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            } else if (type === 'audio') {
+                const audioUrl = URL.createObjectURL(file);
+                preview.innerHTML = `<audio controls src="${audioUrl}"></audio>`;
+            }
+        }
+
+        /**
+         * Format file size for display
+         */
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        /**
+         * Handle drag and drop
+         */
+        ['imageUploadArea', 'audioUploadArea'].forEach(areaId => {
+            const area = document.getElementById(areaId);
+            
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('drag-over');
+            });
+            
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('drag-over');
+            });
+            
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('drag-over');
+                
+                const type = areaId.includes('image') ? 'image' : 'audio';
+                const fileInput = document.getElementById(`${type}File`);
+                fileInput.files = e.dataTransfer.files;
+                
+                handleFileSelect({ target: fileInput }, type);
+            });
+        });
+
+        /**
+         * Main function to verify news
+         */
+        async function verifyNews() {
+            const verifyBtn = document.getElementById('verifyBtn');
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+            
+            let requestBody;
+            let requestHeaders = {};
+            let hasContent = false;
+            
+            if (currentInputType === 'text') {
+                // For text input, send JSON
+                const newsText = document.getElementById('newsInput').value.trim();
+                if (!newsText) {
+                    alert('Please enter some news content to verify.');
+                    return;
+                }
+                
+                requestBody = JSON.stringify({ news: newsText });
+                requestHeaders['Content-Type'] = 'application/json';
+                hasContent = true;
+                
+            } else if (currentInputType === 'image') {
+                // For image input, send FormData
+                if (!selectedFile) {
+                    alert('Please upload an image file.');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                
+                const context = document.getElementById('imageContext').value.trim();
+                if (context) {
+                    formData.append('news', context);
+                }
+                
+                requestBody = formData;
+                hasContent = true;
+                
+            } else if (currentInputType === 'audio') {
+                // For audio input, send FormData
+                if (!selectedFile) {
+                    alert('Please upload an audio file.');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                
+                const context = document.getElementById('audioContext').value.trim();
+                if (context) {
+                    formData.append('news', context);
+                }
+                
+                requestBody = formData;
+                hasContent = true;
+            }
+            
+            if (!hasContent) {
+                alert('Please provide content to verify.');
+                return;
+            }
+            
+            // Disable button and show loading
+            verifyBtn.disabled = true;
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+            
+            try {
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: requestHeaders,
+                    body: requestBody
+                });
+                
+                const data = await response.json();
+                loading.style.display = 'none';
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                displayResult(data.classification, data.explanation);
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                showError('Failed to connect to server. Please try again.');
+                console.error('Error:', error);
+            } finally {
+                verifyBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Display verification result
+         */
+        function displayResult(classification, explanation) {
+            const resultSection = document.getElementById('resultSection');
+            const classificationDiv = document.getElementById('classification');
+            const explanationDiv = document.getElementById('explanation');
+            
+            classificationDiv.textContent = `Classification: ${classification}`;
+            explanationDiv.textContent = explanation;
+            
+            resultSection.className = 'result-section';
+            classificationDiv.className = 'classification';
+            
+            const classLower = classification.toLowerCase();
+            if (classLower.includes('genuine')) {
+                resultSection.classList.add('genuine');
+                classificationDiv.classList.add('genuine');
+            } else if (classLower.includes('fake')) {
+                resultSection.classList.add('fake');
+                classificationDiv.classList.add('fake');
+            } else {
+                resultSection.classList.add('uncertain');
+                classificationDiv.classList.add('uncertain');
+            }
+            
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        /**
+         * Display error message
+         */
+        function showError(errorMessage) {
+            const resultSection = document.getElementById('resultSection');
+            const classificationDiv = document.getElementById('classification');
+            const explanationDiv = document.getElementById('explanation');
+            
+            classificationDiv.textContent = 'Error';
+            explanationDiv.textContent = errorMessage;
+            
+            resultSection.className = 'result-section error';
+            resultSection.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
